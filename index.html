@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>免费网页代理 - Free Web Proxy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            padding: 30px 0;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .panel h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn.secondary {
+            background: #e0e0e0;
+            color: #333;
+            margin-top: 10px;
+        }
+
+        .btn.secondary:hover {
+            background: #d0d0d0;
+        }
+
+        .btn.danger {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .btn.danger:hover {
+            box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        .ip-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .ip-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .ip-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .ip-item .ip {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .ip-item .status {
+            font-size: 0.85em;
+            opacity: 0.9;
+        }
+
+        .ip-item.loading {
+            opacity: 0.6;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card .label {
+            color: #999;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .status-indicator.online {
+            background: #4caf50;
+        }
+
+        .status-indicator.offline {
+            background: #f44336;
+        }
+
+        .status-indicator.testing {
+            background: #ff9800;
+        }
+
+        .result-frame {
+            width: 100%;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-top: 20px;
+            height: 400px;
+            background: white;
+            display: none;
+        }
+
+        .result-frame.active {
+            display: block;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 1em;
+            color: #999;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .ip-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .ip-table th,
+        .ip-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .ip-table th {
+            background: #f5f5f5;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .ip-table tr:hover {
+            background: #f9f9f9;
+        }
+
+        .speed-bar {
+            width: 100%;
+            height: 6px;
+            background: #eee;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .speed-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #8bc34a);
+            border-radius: 3px;
+        }
+
+        .message {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .message.success {
+            background: #c8e6c9;
+            color: #2e7d32;
+            border-left: 4px solid #4caf50;
+        }
+
+        .message.error {
+            background: #ffcdd2;
+            color: #c62828;
+            border-left: 4px solid #f44336;
+        }
+
+        .message.info {
+            background: #bbdefb;
+            color: #0d47a1;
+            border-left: 4px solid #2196f3;
+        }
+
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .panel {
+                padding: 20px;
+            }
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            padding: 20px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌐 免费网页代理服务</h1>
+            <p>安全快速的网页代理 - 支持高质量IP池 - Free Web Proxy</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="label">可用IP</div>
+                <div class="value" id="totalIps">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">在线IP</div>
+                <div class="value" id="onlineIps">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">平均速度</div>
+                <div class="value" id="avgSpeed">0ms</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">成功率</div>
+                <div class="value" id="successRate">0%</div>
+            </div>
+        </div>
+
+        <div class="main-layout">
+            <div class="panel">
+                <h2>🔗 代理访问</h2>
+                <div id="messageBox"></div>
+                
+                <div class="form-group">
+                    <label for="urlInput">输入要访问的网址</label>
+                    <input type="url" id="urlInput" placeholder="https://example.com" value="https://www.google.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="proxySelect">选择代理IP</label>
+                    <select id="proxySelect">
+                        <option value="auto">自动选择最快IP</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="methodSelect">请求方式</label>
+                    <select id="methodSelect">
+                        <option value="GET">GET</option>
+                        <option value="POST">POST</option>
+                    </select>
+                </div>
+
+                <button class="btn" onclick="accessThroughProxy()">🚀 通过代理访问</button>
+                <button class="btn secondary" onclick="testCurrentIP()">🧪 测试当前IP</button>
+
+                <div class="tabs" style="margin-top: 30px;">
+                    <button class="tab-btn active" onclick="switchTab('available')">可用IP列表</button>
+                    <button class="tab-btn" onclick="switchTab('history')">访问历史</button>
+                </div>
+
+                <div id="available" class="tab-content active">
+                    <div class="ip-list" id="ipList"></div>
+                </div>
+
+                <div id="history" class="tab-content">
+                    <div id="historyList" style="max-height: 400px; overflow-y: auto;"></div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>⚙️ IP管理</h2>
+                
+                <div class="form-group">
+                    <label for="ipInput">添加代理IP</label>
+                    <input type="text" id="ipInput" placeholder="192.168.1.1:8080">
+                </div>
+
+                <div class="form-group">
+                    <label for="bulkIpInput">批量导入IP (每行一个)</label>
+                    <textarea id="bulkIpInput" placeholder="192.168.1.1:8080&#10;192.168.1.2:8080" rows="5"></textarea>
+                </div>
+
+                <button class="btn" onclick="addIP()">➕ 添加单个IP</button>
+                <button class="btn secondary" onclick="importBulkIPs()">📥 批量导入</button>
+                <button class="btn danger" onclick="clearAllIPs()">🗑️ 清空所有IP</button>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px; color: #667eea;">IP详细信息</h3>
+                <table class="ip-table">
+                    <thead>
+                        <tr>
+                            <th>代理IP</th>
+                            <th>状态</th>
+                            <th>响应时间</th>
+                            <th>成功率</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ipTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>📊 代理结果预览</h2>
+            <div id="resultContainer" style="position: relative;">
+                <div class="result-frame" id="resultFrame"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>💡 安全提示: 仅用于学习和授权测试，请遵守相关法律法规</p>
+    </div>
+
+    <script>
+        // 本地存储管理
+        const StorageManager = {
+            getIPs() {
+                const ips = localStorage.getItem('proxyIPs');
+                return ips ? JSON.parse(ips) : [];
+            },
+            setIPs(ips) {
+                localStorage.setItem('proxyIPs', JSON.stringify(ips));
+            },
+            getHistory() {
+                const history = localStorage.getItem('accessHistory');
+                return history ? JSON.parse(history) : [];
+            },
+            addToHistory(data) {
+                const history = this.getHistory();
+                history.unshift({
+                    url: data.url,
+                    ip: data.ip,
+                    time: new Date().toLocaleString(),
+                    status: data.status
+                });
+                if (history.length > 50) history.pop();
+                localStorage.setItem('accessHistory', JSON.stringify(history));
+            },
+            getStats() {
+                const stats = localStorage.getItem('proxyStats');
+                return stats ? JSON.parse(stats) : {
+                    totalRequests: 0,
+                    successRequests: 0,
+                    totalTime: 0
+                };
+            },
+            updateStats(success, time) {
+                const stats = this.getStats();
+                stats.totalRequests++;
+                if (success) stats.successRequests++;
+                stats.totalTime += time;
+                localStorage.setItem('proxyStats', JSON.stringify(stats));
+            }
+        };
+
+        // 初始化演示IP
+        function initializeDemo() {
+            const existingIPs = StorageManager.getIPs();
+            if (existingIPs.length === 0) {
+                const demoIPs = [
+                    { ip: '1.1.1.1:8080', speed: 45, success: 95, status: 'online' },
+                    { ip: '8.8.8.8:8080', speed: 52, success: 92, status: 'online' },
+                    { ip: '1.0.0.1:8080', speed: 38, success: 98, status: 'online' },
+                    { ip: '208.67.222.222:8080', speed: 61, success: 85, status: 'online' },
+                    { ip: '9.9.9.9:8080', speed: 48, success: 94, status: 'online' }
+                ];
+                StorageManager.setIPs(demoIPs);
+            }
+        }
+
+        // 渲染IP列表
+        function renderIPList() {
+            const ips = StorageManager.getIPs();
+            const ipList = document.getElementById('ipList');
+            const proxySelect = document.getElementById('proxySelect');
+            
+            ipList.innerHTML = '';
+            proxySelect.innerHTML = '<option value="auto">自动选择最快IP</option>';
+
+            ips.forEach((ipObj, index) => {
+                // IP卡片
+                const card = document.createElement('div');
+                card.className = `ip-item ${ipObj.status === 'testing' ? 'loading' : ''}`;
+                card.innerHTML = `
+                    <div class="ip">${ipObj.ip}</div>
+                    <div class="status">
+                        <span class="status-indicator ${ipObj.status}"></span>
+                        ${ipObj.speed}ms | ${ipObj.success}%
+                    </div>
+                `;
+                card.onclick = () => {
+                    document.getElementById('proxySelect').value = ipObj.ip;
+                };
+                ipList.appendChild(card);
+
+                // 下拉选项
+                const option = document.createElement('option');
+                option.value = ipObj.ip;
+                option.textContent = `${ipObj.ip} (${ipObj.speed}ms)`;
+                proxySelect.appendChild(option);
+            });
+
+            updateStats();
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            const ips = StorageManager.getIPs();
+            const stats = StorageManager.getStats();
+            
+            const totalIps = ips.length;
+            const onlineIps = ips.filter(ip => ip.status === 'online').length;
+            const avgSpeed = ips.length > 0 ? Math.round(ips.reduce((a, b) => a + b.speed, 0) / ips.length) : 0;
+            const successRate = stats.totalRequests > 0 ? Math.round((stats.successRequests / stats.totalRequests) * 100) : 0;
+
+            document.getElementById('totalIps').textContent = totalIps;
+            document.getElementById('onlineIps').textContent = onlineIps;
+            document.getElementById('avgSpeed').textContent = avgSpeed + 'ms';
+            document.getElementById('successRate').textContent = successRate + '%';
+        }
+
+        // 添加单个IP
+        function addIP() {
+            const ipInput = document.getElementById('ipInput');
+            const ip = ipInput.value.trim();
+            
+            if (!ip) {
+                showMessage('请输入IP地址', 'error');
+                return;
+            }
+
+            const ips = StorageManager.getIPs();
+            if (ips.some(ipObj => ipObj.ip === ip)) {
+                showMessage('该IP已存在', 'error');
+                return;
+            }
+
+            ips.push({
+                ip: ip,
+                speed: Math.floor(Math.random() * 100) + 20,
+                success: Math.floor(Math.random() * 20) + 80,
+                status: 'online'
+            });
+
+            StorageManager.setIPs(ips);
+            ipInput.value = '';
+            renderIPList();
+            renderIPTable();
+            showMessage('IP添加成功！', 'success');
+        }
+
+        // 批量导入IP
+        function importBulkIPs() {
+            const bulkInput = document.getElementById('bulkIpInput');
+            const ips = bulkInput.value.trim().split('\n');
+            const currentIPs = StorageManager.getIPs();
+            let addedCount = 0;
+
+            ips.forEach(ip => {
+                ip = ip.trim();
+                if (ip && !currentIPs.some(ipObj => ipObj.ip === ip)) {
+                    currentIPs.push({
+                        ip: ip,
+                        speed: Math.floor(Math.random() * 100) + 20,
+                        success: Math.floor(Math.random() * 20) + 80,
+                        status: 'online'
+                    });
+                    addedCount++;
+                }
+            });
+
+            StorageManager.setIPs(currentIPs);
+            bulkInput.value = '';
+            renderIPList();
+            renderIPTable();
+            showMessage(`成功添加 ${addedCount} 个IP！`, 'success');
+        }
+
+        // 清空所有IP
+        function clearAllIPs() {
+            if (confirm('确定要清空所有IP吗？')) {
+                StorageManager.setIPs([]);
+                renderIPList();
+                renderIPTable();
+                showMessage('所有IP已清空', 'info');
+            }
+        }
+
+        // 渲染IP表格
+        function renderIPTable() {
+            const ips = StorageManager.getIPs();
+            const tbody = document.getElementById('ipTableBody');
+            tbody.innerHTML = '';
+
+            ips.forEach((ipObj, index) => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td><code>${ipObj.ip}</code></td>
+                    <td><span class="status-indicator ${ipObj.status}"></span>${ipObj.status}</td>
+                    <td>${ipObj.speed}ms</td>
+                    <td>
+                        <div class="speed-bar">
+                            <div class="speed-fill" style="width: ${ipObj.success}%"></div>
+                        </div>
+                        ${ipObj.success}%
+                    </td>
+                    <td>
+                        <button class="btn secondary" style="padding: 5px 10px; font-size: 0.9em; width: auto;" onclick="testIP('${ipObj.ip}', ${index})">测试</button>
+                        <button class="btn danger" style="padding: 5px 10px; font-size: 0.9em; width: auto; margin-top: 5px;" onclick="removeIP(${index})">删除</button>
+                    </td>
+                `;
+            });
+
+            if (ips.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">暂无IP数据，请添加IP</td></tr>';
+            }
+        }
+
+        // 测试IP
+        function testIP(ip, index) {
+            const ips = StorageManager.getIPs();
+            ips[index].status = 'testing';
+            StorageManager.setIPs(ips);
+            renderIPList();
+            renderIPTable();
+
+            // 模拟测试
+            setTimeout(() => {
+                ips[index].speed = Math.floor(Math.random() * 100) + 10;
+                ips[index].success = Math.floor(Math.random() * 20) + 80;
+                ips[index].status = 'online';
+                StorageManager.setIPs(ips);
+                renderIPList();
+                renderIPTable();
+                showMessage(`IP ${ip} 测试完成！响应时间: ${ips[index].speed}ms`, 'success');
+            }, 2000);
+        }
+
+        // 删除IP
+        function removeIP(index) {
+            if (confirm('确定要删除该IP吗？')) {
+                const ips = StorageManager.getIPs();
+                ips.splice(index, 1);
+                StorageManager.setIPs(ips);
+                renderIPList();
+                renderIPTable();
+                showMessage('IP已删除', 'info');
+            }
+        }
+
+        // 通过代理访问
+        function accessThroughProxy() {
+            const url = document.getElementById('urlInput').value;
+            const proxy = document.getElementById('proxySelect').value;
+            const method = document.getElementById('methodSelect').value;
+
+            if (!url) {
+                showMessage('请输入要访问的网址', 'error');
+                return;
+            }
+
+            showMessage('正在通过代理访问...', 'info');
+            
+            const ips = StorageManager.getIPs();
+            const selectedIP = proxy === 'auto' 
+                ? ips.sort((a, b) => a.speed - b.speed)[0]?.ip 
+                : proxy;
+
+            if (!selectedIP) {
+                showMessage('请先添加代理IP', 'error');
+                return;
+            }
+
+            // 模拟代理请求
+            const startTime = Date.now();
+            setTimeout(() => {
+                const duration = Date.now() - startTime;
+                const success = Math.random() > 0.1;
+                
+                StorageManager.addToHistory({
+                    url: url,
+                    ip: selectedIP,
+                    status: success ? '成功' : '失败'
+                });
+                
+                StorageManager.updateStats(success, duration);
+
+                if (success) {
+                    showMessage(`✓ 通过代理 ${selectedIP} 访问成功！耗时: ${duration}ms`, 'success');
+                    displayResult(url, selectedIP);
+                } else {
+                    showMessage(`✗ 代理请求失败，请尝试其他IP`, 'error');
+                }
+
+                renderIPList();
+                renderHistory();
+                updateStats();
+            }, 1500);
+        }
+
+        // 测试当前IP
+        function testCurrentIP() {
+            showMessage('正在检测您的IP...', 'info');
+            
+            setTimeout(() => {
+                const myIP = '203.0.113.' + Math.floor(Math.random() * 256);
+                showMessage(`您的IP地址: ${myIP}`, 'success');
+            }, 1000);
+        }
+
+        // 显示访问结果
+        function displayResult(url, ip) {
+            const resultFrame = document.getElementById('resultFrame');
+            resultFrame.innerHTML = `
+                <div style="padding: 20px; background: #f9f9f9; height: 100%; overflow-y: auto;">
+                    <div style="margin-bottom: 15px; padding-bottom: 15px; border-bottom: 2px solid #eee;">
+                        <strong>📍 代理信息</strong><br>
+                        原始URL: ${url}<br>
+                        代理IP: ${ip}<br>
+                        访问时间: ${new Date().toLocaleString()}<br>
+                        状态: ✓ 成功
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <strong>📄 响应示例</strong><br>
+                        <pre style="background: white; padding: 10px; border-radius: 5px; overflow-x: auto;">
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=utf-8
+Content-Length: 1234
+X-Proxy-By: Free-Web-Proxy
+X-Real-IP: 203.0.113.100
+
+(此处为网页内容)
+                        </pre>
+                    </div>
+                    <div>
+                        <strong>⚡ 性能指标</strong><br>
+                        响应时间: ${Math.floor(Math.random() * 100) + 20}ms<br>
+                        数据大小: ${Math.floor(Math.random() * 500) + 100}KB<br>
+                        连接状态: 稳定
+                    </div>
+                </div>
+            `;
+            resultFrame.classList.add('active');
+        }
+
+        // 渲染访问历史
+        function renderHistory() {
+            const history = StorageManager.getHistory();
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = '';
+
+            if (history.length === 0) {
+                historyList.innerHTML = '<p style="color: #999; text-align: center;">暂无访问历史</p>';
+                return;
+            }
+
+            const table = document.createElement('table');
+            table.className = 'ip-table';
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>访问网址</th>
+                        <th>代理IP</th>
+                        <th>访问时间</th>
+                        <th>状态</th>
+                    </tr>
+                </thead>
+            `;
+
+            const tbody = document.createElement('tbody');
+            history.forEach(record => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td style="word-break: break-all; font-size: 0.9em;">${record.url}</td>
+                    <td><code>${record.ip}</code></td>
+                    <td>${record.time}</td>
+                    <td>${record.status === '成功' ? '✓ ' : '✗ '}${record.status}</td>
+                `;
+            });
+
+            table.appendChild(tbody);
+            historyList.appendChild(table);
+        }
+
+        // 切换标签页
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tab).classList.add('active');
+
+            if (tab === 'history') {
+                renderHistory();
+            }
+        }
+
+        // 显示消息
+        function showMessage(message, type) {
+            const msgBox = document.getElementById('messageBox');
+            msgBox.innerHTML = `<div class="message ${type} show">${message}</div>`;
+            setTimeout(() => {
+                msgBox.innerHTML = '';
+            }, 4000);
+        }
+
+        // 页面加载
+        window.addEventListener('load', () => {
+            initializeDemo();
+            renderIPList();
+            renderIPTable();
+            renderHistory();
+        });
+    </script>
+</body>
+</html>
